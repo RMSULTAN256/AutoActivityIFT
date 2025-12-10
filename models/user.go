@@ -1,0 +1,13 @@
+package models
+
+type Users struct {
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Platform string `json:"platform"`
+}
+
+type Action struct {
+	Name       string   `json:"name"`
+	Activities []string `json:"activities"`
+}
