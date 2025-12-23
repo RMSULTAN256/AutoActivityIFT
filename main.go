@@ -10,7 +10,8 @@ import (
 func main() {
 	a := app.New()
 	w := a.NewWindow("Bot Menu")
-	w.Resize(fyne.NewSize(1000, 600))
+	w.Resize(fyne.NewSize(1600, 600))
+	w.SetFixedSize(false)
 	w.SetContent(ui.NewMainTabs())
 	w.ShowAndRun()
 }

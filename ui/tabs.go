@@ -12,11 +12,34 @@ func NewMainTabs() *container.AppTabs {
 		return logic.HandleCrendetials(name, user, pass, plat)
 	}))
 
-	BotMenu := container.NewTabItem("Bot Menu", widget.NewLabel("Bot Menu"))
-	listAccount := container.NewTabItem("List Account", NewAccountListTable())
+	BotMenu := container.NewTabItem("Bot Menu", ActivityBot(
+		func(name, schedule, action, remaintime string) error {
+			return logic.BrowserIdle(name, schedule, action, remaintime)
+		},
+		func(name string) error {
+			return logic.BrowserClose(name)
+		}))
+
+	//innerBotMenu := container.NewAppTabs(
+	//	BotMenu,
+	//	container.NewTabItem("Configuration", widget.NewLabel("Configuration")),
+	//)
+
+	innerTabsAccount := container.NewAppTabs(
+		container.NewTabItem("List Account", NewAccountListTable()),
+		container.NewTabItem("Configuration", widget.NewLabel("Configuration")),
+	)
+	listAccount := container.NewTabItem("List Account", innerTabsAccount)
+
 	status := container.NewTabItem("Status", widget.NewLabel("Status"))
 
-	tabs := container.NewAppTabs(credTab, BotMenu, listAccount, status)
-	tabs.SetTabLocation(container.TabLocationLeading)
+	innerLogTabs := container.NewAppTabs(
+		container.NewTabItem("Logs", Logging()),
+		container.NewTabItem("Configuration", widget.NewLabel("Configuration")),
+	)
+	Logs := container.NewTabItem("Logs", innerLogTabs)
+
+	tabs := container.NewAppTabs(credTab, BotMenu, listAccount, status, Logs)
+	tabs.SetTabLocation(container.TabLocationTop)
 	return tabs
 }

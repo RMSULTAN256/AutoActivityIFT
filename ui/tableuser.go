@@ -40,6 +40,7 @@ func NewAccountListTable() fyne.CanvasObject {
 					label.SetText("Platform")
 				}
 				label.TextStyle = fyne.TextStyle{Bold: true}
+				label.Alignment = fyne.TextAlignCenter
 				return
 			}
 
@@ -68,7 +69,7 @@ func NewAccountListTable() fyne.CanvasObject {
 	go func() {
 		u := url.URL{
 			Scheme: "ws",
-			Host:   "localhost:5544",
+			Host:   "127.0.0.1:5544",
 			Path:   "/api/v1/ws",
 		}
 		log.Println("connecting to", u.String())

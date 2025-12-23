@@ -13,12 +13,23 @@ type ApiResp struct {
 	Data   string `json:"data"`
 }
 
+type StartBotRequest struct {
+	Name       string   `json:"name" binding:"required"`
+	Mode       string   `json:"mode"`
+	Activities []string `json:"activities,omitempty"`
+	Interval   string   `json:"interval"`
+	TTL        string   `json:"ttl"`
+}
+
 func (e *ApiResp) Error() string {
 	return fmt.Sprintf("%s: %s", e.Status, e.Data)
 }
 
 var (
-	url = `http://localhost:5544/api/v1/adduser`
+	url      = `http://localhost:5544/api/v1/adduser`
+	urlStart = `http://localhost:5544/api/v1/startbot`
+	urlStop  = `http://localhost:5544/api/v1/stopbot`
+	urlReset = `http://localhost:5544/api/v1/resetlogs`
 )
 
 func HandleCrendetials(name, user, pass, platform string) error {
@@ -57,16 +68,37 @@ func HandleCrendetials(name, user, pass, platform string) error {
 		if res.Data != "" {
 			return fmt.Errorf(res.Data)
 		}
-		return fmt.Errorf("Send Failed")
+		return fmt.Errorf("send Failed")
 	}
 
 	return nil
 }
 
-func HandleBrowser(name, action string) error {
-	data := models.Action{
+func BrowserIdle(name, schedule, action, remain string) error {
+	var ListActivites []string
+
+	if action != "idle" {
+		ListActivites = []string{action}
+	} else {
+		ListActivites = []string{}
+	}
+
+	formattedInterval := ""
+	if schedule != "" {
+		formattedInterval = schedule + "m"
+	}
+
+	formattedTTL := ""
+	if remain != "" {
+		formattedTTL = remain + "h"
+	}
+
+	data := StartBotRequest{
 		Name:       name,
-		Activities: []string{action},
+		Mode:       action,
+		Activities: ListActivites,
+		Interval:   formattedInterval,
+		TTL:        formattedTTL,
 	}
 
 	jsonData, err := json.Marshal(data)
@@ -74,7 +106,7 @@ func HandleBrowser(name, action string) error {
 		return fmt.Errorf("failed to marshal json: %w", err)
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(urlStart, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("error sending request: %w", err)
 	}
@@ -96,7 +128,65 @@ func HandleBrowser(name, action string) error {
 		if res.Data != "" {
 			return fmt.Errorf(res.Data)
 		}
-		return fmt.Errorf("Send Failed")
+		return fmt.Errorf("send Failed")
 	}
+
+	return nil
+}
+
+func BrowserClose(name string) error {
+	Data := StartBotRequest{
+		Name: name,
+	}
+
+	jsonData, err := json.Marshal(Data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal json: %w", err)
+	}
+
+	resp, err := http.Post(urlStop, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return fmt.Errorf("error sending request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var res ApiResp
+	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return fmt.Errorf("failed to parse response (status %d): %w", resp.StatusCode, err)
+	}
+
+	if resp.StatusCode >= 400 {
+		if res.Data != "" {
+			return fmt.Errorf(res.Data)
+		}
+		return fmt.Errorf("server error (%d)", resp.StatusCode)
+	}
+
+	if resp.Status == "fail" {
+		if res.Data != "" {
+			return fmt.Errorf(res.Data)
+		}
+		return fmt.Errorf("send Failed")
+	}
+
+	return nil
+}
+
+func ResetLogsData() error {
+	req, err := http.NewRequest(http.MethodDelete, urlReset, nil)
+	if err != nil {
+		return fmt.Errorf("error sending request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("error sending request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("server error (%d)", resp.StatusCode)
+	}
+
 	return nil
 }

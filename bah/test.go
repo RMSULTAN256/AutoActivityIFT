@@ -1,4 +1,4 @@
-package bah
+package main
 
 import (
 	"fyne.io/fyne/v2"
@@ -8,7 +8,7 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-func Tester() {
+func main() {
 	a := app.New()
 	w := a.NewWindow("Tester Menu")
 
@@ -51,11 +51,18 @@ func Tester() {
 		container.NewCenter(content),
 	)
 
+	innerTab := container.NewAppTabs(
+		container.NewTabItem("Tab 1", widget.NewLabel("Tab 1 Content")),
+		container.NewTabItem("Tab 2", widget.NewLabel("Tab 2 Content")),
+		container.NewTabItem("Tab 3", widget.NewLabel("Tab 3 Content")),
+	)
+
 	Tab := container.NewAppTabs(
 		container.NewTabItem(Menu1, contentInBorder),
 		container.NewTabItem(Menu2, widget.NewLabel("Bot Menu")),
 		container.NewTabItem(Menu3, widget.NewLabel("List Account")),
-		container.NewTabItem(Menu4, widget.NewLabel("Status")))
+		container.NewTabItem(Menu4, widget.NewLabel("Status")),
+		container.NewTabItem("List all", innerTab))
 
 	Tab.SetTabLocation(container.TabLocationLeading)
 	w.SetContent(Tab)

@@ -6,8 +6,3 @@ type Users struct {
 	Password string `json:"password"`
 	Platform string `json:"platform"`
 }
-
-type Action struct {
-	Name       string   `json:"name"`
-	Activities []string `json:"activities"`
-}
